@@ -233,3 +233,25 @@ Khi đó, Express sẽ ghép nối prefix + endpoint: ```/products + /add = /pro
       - `'/product'` truyền vào `res.redirect()` mới là endpoint vì nó là logic xử lý điều hướng sang một route khác.
     
     Một số fn khác trong controller chỉ có chức năng trả về JSON hoặc API response nên sẽ không có chuỗi này.
+
+# Kết quả demo
+
+1. Trang login
+
+![alt text](image.png)
+
+2. login thất bại
+
+![alt text](image-1.png)
+
+3. Danh sách sản phẩm
+
+![alt text](image-2.png)
+
+4. Thêm sản phẩm
+
+![alt text](image-3.png)
+
+5. Kết quả sau khi thêm
+
+![alt text](image-4.png)
