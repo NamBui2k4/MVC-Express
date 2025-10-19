@@ -1,7 +1,7 @@
 const User = require("../model/User");
 
 const moveToLogin = (req, res) =>{
-    res.render('loginView')
+    res.render('loginView',  { error: null })
 }
 
 const handleLogin = (req, res) =>{

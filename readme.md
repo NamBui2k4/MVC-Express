@@ -20,35 +20,33 @@
 ```
 
 
-# Giải thích từng bước luồng hoạt động
+# Giải thích từng bước hoạt động
 
 Browser (Client)
 
-- Gửi Request (Req) → ví dụ: GET /products.
+- Gửi Request (Req) về Controller → ví dụ: GET /products.
 
 Controller
 
-- Nhận request từ browser qua hệ thống routing của Express.
+- Nhận request từ browser.
 
-- Gọi Model để lấy hoặc xử lý dữ liệu (ví dụ truy vấn danh sách sản phẩm).
+- Gọi Model để xử lý dữ liệu (ví dụ truy vấn danh sách sản phẩm).
 
 Model
 
-- Là nơi xử lý dữ liệu, có thể truy cập DB (Database) để đọc/ghi.
+- Gọi DB để đọc/ghi.
 
-- Trả kết quả (data) về lại Controller.
+- Trả kết quả về lại cho Controller. 
 
 Controller
 
-- Nhận data từ Model → đính kèm vào View bằng lệnh res.render('view', { data }).
+- Nhận kết quả từ Model và kiểm tra:
+  - Nếu success → trả về 200 OK + render lên View.
+  - Nếu fail → trả về 404 (NULL),  401, 403,..vv
 
 View
-
-- Nhận data từ Controller, dùng EJS/HTML để hiển thị ra giao diện.
-
-Browser (Client)
-
-- Nhận Response (Res) là trang HTML đã render sẵn → hiển thị lên màn hình.
+- Nhận thông tin từ controller.
+- Nếu có data, dùng EJS/HTML để hiển thị ra giao diện cho Browser.
 
 # Tóm gọn
 ```pgsql
@@ -63,9 +61,7 @@ Browser ⇆ Controller ⇆ Model ⇆ DB
 
 # 🧩 Vị trí của Router trong MVC
 
-Khi ta cài đặt với nodejs, giữa Browser và Controller còn có Router, vì request từ browser không đi thẳng vào controller mà phải được định tuyến (routed).
-
-Lưu ý: 
+Khi ta cài đặt với nodejs, giữa Browser và Controller còn có một đối tượng Router.
 
 - Router là “người gác cổng”, chỉ xác định xem “đi đường nào, gọi ai” trên HTTP method.
 - Không xử lý nghiệp vụ.
@@ -79,51 +75,39 @@ Browser ────────►  Controller ─────► Model ──�
           Router 
 ```
 
+Khi user nhập http://localhost:3000/products thì '/products' chính là một router.
+
 - Thử đặt câu hỏi: Nếu không có router thì sao?
-- => Về mặt kĩ thuật, nếu không có router, sau khi định nghĩa logic code trong các function của controller, ta vô tình quên gọi các function này dẫn đến hiện tượng các hành động tương tác với giao diện không trả về cái gì cho phía backend. 
+- Về mặt kĩ thuật, Controller là nơi dev sẽ viết các function xử lý yêu cầu (vd: getOrder() getProduct(),...). 
+  Nếu yêu cầu của user là xem sản phẩm thì `getProduct()` có thể giải quyết dc, nhưng câu hỏi là ai sẽ gửi yêu cầu đó cho `getProduct()` ? 
+- Rõ ràng, nếu không có router thì việc duy nhất mà user làm chỉ là đứng yên ở Home page http://localhost:3000 
+- Điều này giống như order gà rán tại nhà từ KFC nhưng lại không có điện thoại để liên lạc vậy.
 
-# Cấu trúc project cơ bản (khởi tạo bằng express-generator)
+# Cấu trúc project cơ bản
 
+Khi khởi tạo bằng express-generator, một project cơ bản sẽ có dạng như sau:
 ```pgsql
 myapp/
   ├───── app.js
   ├───── bin/
   ├───── routes
   │         ├─ index.js 
-  │         ├─ product.js
-  │         ├─ order.js
   │         └─ users.js
+  │                (tự tạo thêm:  productRouter.js, order.js)
   ├───── controllers/
   │              (tự tạo thêm: productController.js, authController.js)
   ├───── models/
-  │         (tự tạo thêm: product.js)
+  │         (tự tạo thêm: productModel.js)
   ├───── views/
-  │         (EJS: index.ejs, login.ejs, add.ejs, detail.ejs...)
+  │         (EJS: index.ejs, login.ejs, add.ejs, productView.ejs...)
   └───── public/ 
             (static assets)
 ```
 
-# Luồng chuẩn
-```pgsql
-Browser
-  ↓
-Express App (app.js)
-  ↓
-Router (/routes/product.js)
-  ↓
-Controller (/controllers/productController.js)
-  ↓
-Model → DB
-  ↓
-View
-  ↓
-Response to Browser
-```
-
-1. Router đọc URL và HTTP method, sau đó chuyển yêu cầu đến đúng hàm trong Controller:
+Code cơ bản như sau:
 
 ```js
-// routes/product.js
+// routes/productRouter.js
 const express = require('express');
 const router = express.Router();
 const productController = require('../controller/productController');
@@ -133,106 +117,128 @@ router.post('/add', productController.addProduct);
 
 module.exports = router;
 ```
-2. Controller thực hiện logic
+
 ```js
+
+// controllers/productController.js
 exports.getProducts = (req, res) => {
   const products = [ ... ];
   res.render('product', { products });
 };
 
 ```
-# Sơ đồ Endpoint trong Express MVC
+# Kinh nghiệm từ những ngày đầu thực hành với Express MVC
 
-Một trong những sai lầm lớn nhất khi làm quen với Express MVC đó là: 
+Người ta nói "trăm hay không bằng tay quen". Cho nên dù hình vẽ MVC đã có sẵn nhưng nếu
+chỉ nhìn vào rồi code theo thì cũng khá khoai :V. Với Express, mình luôn cảm thấy rối tung rối mù vì cách truyền callback vào từng middleware và từng method. Và sau khi chịu khó làm quen
+(tất nhiên là phải có trợ thủ gpt bên cạnh kkk) thì mình đúc kết dc một số kinh nghiệm.
 
-    Không biết đường đi của endpoint (route → controller → view), dẫn đến lỗi “render sai file / không đổ được dữ liệu”
+Mình trình bày cách code qua sơ đồ cụ thể như sau (lấy chức năng xem sản phẩm làm mẫu):
 
-Ta lấy ví dụ sơ đồ dưới đây:
+```js
 
-```pgsql
-
-📍 Người dùng: http://localhost:3000/products
-              │
-              ▼
-┌───────────────────────────────────────────────────┐
-│ app.js (Entry point)                              │
-│---------------------------------------------      │
-│ const productRouter = require('./routes/product') │
-│ app.use('/products', productRouter)               │
-└───────────────────────────────────────────────────┘
-              │
-              ▼
-┌──────────────────────────────────────────────┐
-│ routes/product.js                            │
-│----------------------------------------------│
-│ const productController =                    │
-│  require('../controller/productController'); │
-│                                              │       
-│ router.get('/', productController.getAll);   │
-│ router.post('/add', productController.add);  │
-└──────────────────────────────────────────────┘
-              │
-              ▼
-┌──────────────────────────────────────────────┐
-│ controllers/productController.js             │
-│----------------------------------------------│
-│ const Product = require('../models/product') │
-│                                              │
-│ getAll(req, res):                            │
-│   const products = Product.getAll();         │
-│   res.render('product', { products });       │
-│                                              │
-│ add(req, res):                               │
+Người dùng: http://localhost:3000/products    ◄───────────────────────┐
+                │                                                     │
+                ▼                                                     │ 
+┌─────────────────────────────────────────────────────────┐           │
+│                      app.js                             │           │
+│---------------------------------------------------------│           │
+│ const productRouter = require('./routes/productRouter') │           │
+│ app.use('/products', productRouter)                     │           │
+└─────────────────────────────────────────────────────────┘           │
+              │                                                       │
+              ▼                                                       │
+┌──────────────────────────────────────────────┐                      │
+│              routes/product.js               │                      │
+│----------------------------------------------│                      │
+│ const productController =                    │                      │
+│  require('../controller/productController'); │                      │
+│                                              │                      │
+│ router.get('/', productController.getAll);   │                      │
+│ router.post('/add', productController.add);  │                      │
+└──────────────────────────────────────────────┘                      │
+              │                                                       │
+              ▼                                                       │
+┌──────────────────────────────────────────────┐                      │
+│       controllers/productController.js       │                      │
+│----------------------------------------------│                      │
+│ const Product = require('../models/product') │                      │
+│                                              │          ┌──────────────────────────────────────────────┐
+│ const getAll = (req, res)  => {              │          │              views/product.ejs               │
+│   const products = Product.getAll();  ───────────────►  │----------------------------------------------│
+│   res.render('product', { products });       │          │ Hiển thị dữ liệu từ getAll()                 │
+│ }                                            │          └──────────────────────────────────────────────┘
+|                                              |
+│ const add = (req, res) => {                  │
 │   Product.add(req.body);                     │
 │   res.redirect('/products');                 │
+| }                                            │
 └──────────────────────────────────────────────┘
               │
               ▼
 ┌──────────────────────────────────────────────┐
-│ models/product.js                            │
+│             models/product.js                │
 │----------------------------------------------│
+│   const data = [........]                    │
 │                                              │
-│   getAll() { return data; }                  │
-│   add(newProduct) { data.push(newProduct); } │
+│   const getAll = () => {                     │
+|      return data;                            │
+│   }                                          │
 │                                              │
-└──────────────────────────────────────────────┘
-              │
-              ▼
-┌──────────────────────────────────────────────┐
-│ views/product.ejs                            │
-│----------------------------------------------│
-│ Hiển thị dữ liệu qua EJS (table, buttons...) │
-└──────────────────────────────────────────────┘
-              │
-              ▼
-┌──────────────────────────────────────────────┐
-│ Browser                                      │
-│----------------------------------------------│
-│ Người dùng thấy HTML được render             │
+│   add(newProduct) {                          │
+│     data.push(newProduct);                   │
+│   }                                          │
 └──────────────────────────────────────────────┘
 ```
 
-- Nhìn vào `app.js` và `routes/product.js`, ta đặt ra câu hỏi:
-  - Tại sao một bên là app gọi tới `productRouter` để điều hướng tới route '/products', trong khi bên `productRouter` thì 
-  các http method lại được gọi ở những vị trí khác như '/' hay '/add' ?
+- Các thành phần trong mvc sẽ gọi lẫn nhau để xử lý tác vụ nên một khi sửa code một
+  chỗ thì có thể phải sửa cả những chỗ khác. -> mò bug điên đầu luôn ! 
 
-👉 Trước hết: Express có 2 cấp định tuyến (routing levels):
+- Sơ đồ này không có thứ tự edit file nào là đúng hoàn toàn cả vì 
+  khi truyền callback vào middleware, mình phải nhảy sang chỗ khác để viết cái callback đó.
+  
+  Ví dụ như đang viết dở route.get() trong route nhưng đứa này gọi tới callback `getAll`,
+  thế là lại phải nhảy qua controller để định nghĩa `getAll`. Hoặc là lúc render data lên view 
+  trong controller thì lại hứng lên sửa cái view cho thật đẹp đã :V.
 
-  1. app-level: Xác định prefix (tiền tố) cho nhóm router
-  2. router-level: Xác định endpoint cho các http methods bên trong router
+- Một option khác nhưng mình thấy không khả thi lắm là xuất phát từ model -> controller -> route -> view -> app.js
 
-Khi đó, Express sẽ ghép nối prefix + endpoint: ```/products + /add = /products/add```
+## 🗣️ Góc hỏi đáp
 
-Đây mới chính là đường dẫn thực sự, điều đó có nghĩa rằng trên search bar thì người dùng phải nhập đầy đủ `http://localhost:3000/products/add`
+Nhìn vào `app.js` và `routes/product.js`, ta đặt ra câu hỏi:
+  
+    Tại sao app gọi tới `productRouter` để điều hướng tới route '/products', 
+    trong khi `productRouter` thì điều hướng tới chỗ khác như '/' hay '/add' ?
+    Rồi rốt cuộc endpoint của mình ở đây là gì?
 
-- Vậy còn controller thì sao, tại sao lại có một số fn lại có endpoint  (ví dụ `'product'` hoặc `'/product'`) ?
-  - Thực ra thì không phải fn nào cũng có endpoint.
+👉 Thực ra endpoint của Express có 2 cấp định tuyến (routing levels):
+
+  1. app-level: Xác định tiền tố cho nhóm router
+  2. router-level: Xác định route cho các http methods
+
+Khi đó, Express sẽ ghép nối prefix + route: ```/products + /add = /products/add```
+
+Đây mới chính là endpoint thực sự, điều đó có nghĩa rằng trên search bar người dùng phải nhập đầy đủ `http://localhost:3000/products/add` thì `productController.add` mới được gọi tới. Nếu chỉ dừng lại ở `http://localhost:3000/products` thì thứ dc gọi tới sẽ là `productController.getAll`.
+
+---------------
+
+Nhìn vào controller, ta đặt ra thêm câu hỏi:
+
+    Những cái chuỗi truyền vào fn của `res`  có phải là route hay không ? (ví dụ `'product'` hoặc `'/product'`) 
+
+  - Thực ra thì không phải cái chuỗi nào cũng là endpoint. Tùy vào fn đó có chức năng 
+    gì mà parameters của nó có vai trò nhất định.
     
-    Và cái chuỗi truyền vào fn đó cũng chưa chăc là endpoint đâu, Ví dụ:
-      - `'product'` truyền vào `res.render()` là đường dẫn với file .ejs trong view (ví dụ: views/product.ejs) chứ không phải endpoint
-      - `'/product'` truyền vào `res.redirect()` mới là endpoint vì nó là logic xử lý điều hướng sang một route khác.
-    
-    Một số fn khác trong controller chỉ có chức năng trả về JSON hoặc API response nên sẽ không có chuỗi này.
+    Ví dụ:
+      - `res.render()` là thứ đổ dữ liệu từ controller về view nên tham số `'product'` không phải endpoint mà là đường dẫn với file `views/product.ejs` 
+      
+      Trong app.js ta đã có dòng `app.set('view engine', 'ejs');` mặc định rằng định dạng 
+      xuất ra là ejs chứ không phải html. Điều này thuận tiện cho dev vì đỡ phải chỉ định
+      phần mở rộng của file.
+
+      - Còn `'/product'` truyền vào `res.redirect()` mới là endpoint thực sự vì `res.redirect()` có chức năng điều hướng sang một route khác khi có một sự kiện nào đó xảy ra.
+      
+      Ví dụ như khi phiên đăng nhập hết hạn, người dùng sẽ được chuyển từ trang giới thiệu sản phẩm sang trang login. Và để làm điều đó thì controller mới can thiệp vào route thông qua `redirect()`.
 
 # Kết quả demo
 
@@ -244,7 +250,7 @@ Khi đó, Express sẽ ghép nối prefix + endpoint: ```/products + /add = /pro
 
 ![alt text](image-1.png)
 
-3. Danh sách sản phẩm
+3. Khi login thành công thì hiện ra danh sách sản phẩm
 
 ![alt text](image-2.png)
 
