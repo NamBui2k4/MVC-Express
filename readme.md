@@ -1,4 +1,4 @@
-# Tổng quan mô hình MVC trong Express
+# 🔍 Tổng quan mô hình MVC trong Express
 
 ```pgsql                    
                                                             ┌─────────────────────────────────────────────────┐
@@ -20,7 +20,7 @@
 ```
 
 
-# Giải thích từng bước hoạt động
+## 🚀 Giải thích từng bước hoạt động
 
 Browser (Client)
 
@@ -48,7 +48,7 @@ View
 - Nhận thông tin từ controller.
 - Nếu có data, dùng EJS/HTML để hiển thị ra giao diện cho Browser.
 
-# Tóm gọn
+## 📚 Tóm gọn
 ```pgsql
 Browser ⇆ Controller ⇆ Model ⇆ DB
                 ↓
@@ -59,7 +59,7 @@ Browser ⇆ Controller ⇆ Model ⇆ DB
               (Res)
 ```
 
-# 🧩 Vị trí của Router trong MVC
+## 🧩 Vị trí của Router trong MVC
 
 Khi ta cài đặt với nodejs, giữa Browser và Controller còn có một đối tượng Router.
 
@@ -84,7 +84,7 @@ Khi user nhập http://localhost:3000/products thì '/products' chính là m
 - Rõ ràng, nếu không có Router thì việc duy nhất mà user làm chỉ là đứng yên ở Home page http://localhost:3000 
 - Điều này giống như order gà rán tại nhà từ KFC nhưng lại không có điện thoại để liên lạc vậy.
 
-# Cấu trúc project cơ bản
+## 🧱 Cấu trúc project cơ bản
 
 Khi khởi tạo bằng express-generator, một project cơ bản sẽ có dạng như sau:
 ```pgsql
@@ -128,7 +128,7 @@ exports.getProducts = (req, res) => {
 };
 
 ```
-# Kinh nghiệm từ những ngày đầu thực hành với Express MVC
+## 🎯 Kinh nghiệm từ những ngày đầu thực hành với Express MVC
 
 Người ta nói "trăm hay không bằng tay quen". Cho nên dù hình vẽ MVC đã có sẵn nhưng nếu
 chỉ nhìn vào rồi code theo thì cũng khá khoai :V. Với Express, mình luôn cảm thấy rối tung rối mù vì cách truyền callback vào từng middleware và từng method. Và sau khi chịu khó làm quen
@@ -175,7 +175,7 @@ Người dùng: http://localhost:3000/products    ◄─────────
 │   res.redirect('/products');                 │
 | }                                            │
 └──────────────────────────────────────────────┘
-              │
+              │ 
               ▼
 ┌──────────────────────────────────────────────┐
 │             models/product.js                │
@@ -241,7 +241,35 @@ Nhìn vào controller, ta đặt ra thêm câu hỏi:
       
       Ví dụ như khi phiên đăng nhập hết hạn, người dùng sẽ được chuyển từ trang giới thiệu sản phẩm sang trang login. Và để làm điều đó thì controller mới can thiệp vào route thông qua `redirect()`.
 
-# Kết quả demo
+## ⚠️ Lỗi hay gặp khi code
+
+1. Quên export các function
+
+Yes sirrr, đây là lỗi đầu tiên và phổ biến nhất mình đã gặp và nó khiến mình
+bất mãn bữa giờ, thậm chí nghi ngờ bản thân =))).
+
+Cơ bản thì sẽ có một số tình huống gây ra lỗi này như sau:
+
+- quên export trong route
+    ```error
+      D:\study\nodejs\mvc-express\node_modules\express\lib\router\index.js:458
+        throw new TypeError('Router.use() requires a middleware function but got a ' + gettype(fn))
+        ^
+
+        TypeError: Router.use() requires a middleware function but got a Object
+    ```
+- quên export một fn trong controller
+
+    ```error
+      D:\study\nodejs\mvc-express\node_modules\express\lib\router\route.js:202
+        throw new Error(msg);
+        ^
+
+      Error: Route.get() requires a callback function but got a [object Undefined]
+    ```
+- quên export trong model: Tình huống này báo lỗi tương tự như quên export router nên phải
+  kiểm tra kỹ xem khả năng có nằm ở 2 thứ này hay không
+## 🎉 Kết quả demo
 
 1. Trang login
 
