@@ -63,6 +63,7 @@ Browser ⇆ Controller ⇆ Model ⇆ DB
 
 Khi ta cài đặt với nodejs, giữa Browser và Controller còn có một đối tượng Router.
 
+- Router sẽ xác định phần endpoint của url trang web
 - Router là “người gác cổng”, chỉ xác định xem “đi đường nào, gọi ai” trên HTTP method.
 - Không xử lý nghiệp vụ.
 - Không render giao diện.
@@ -75,12 +76,12 @@ Browser ────────►  Controller ─────► Model ──�
           Router 
 ```
 
-Khi user nhập http://localhost:3000/products thì '/products' chính là một router.
+Khi user nhập http://localhost:3000/products thì '/products' chính là một endpoint.
 
-- Thử đặt câu hỏi: Nếu không có router thì sao?
+- Thử đặt câu hỏi: Nếu không có Router thì sao?
 - Về mặt kĩ thuật, Controller là nơi dev sẽ viết các function xử lý yêu cầu (vd: getOrder() getProduct(),...). 
-  Nếu yêu cầu của user là xem sản phẩm thì `getProduct()` có thể giải quyết dc, nhưng câu hỏi là ai sẽ gửi yêu cầu đó cho `getProduct()` ? 
-- Rõ ràng, nếu không có router thì việc duy nhất mà user làm chỉ là đứng yên ở Home page http://localhost:3000 
+  Nếu yêu cầu của user là xem sản phẩm thì `getProduct()` có thể giải quyết dc, nhưng câu hỏi là ai sẽ gửi yêu cầu đó cho `getProduct()` ? Đó chính là Router !
+- Rõ ràng, nếu không có Router thì việc duy nhất mà user làm chỉ là đứng yên ở Home page http://localhost:3000 
 - Điều này giống như order gà rán tại nhà từ KFC nhưng lại không có điện thoại để liên lạc vậy.
 
 # Cấu trúc project cơ bản
