@@ -164,11 +164,11 @@ Người dùng: http://localhost:3000/products    ◄─────────
 │       controllers/productController.js       │                      │
 │----------------------------------------------│                      │
 │ const Product = require('../models/product') │                      │
-│                                              │          ┌──────────────────────────────────────────────┐
-│ const getAll = (req, res)  => {              │          │              views/product.ejs               │
-│   const products = Product.getAll();  ───────────────►  │----------------------------------------------│
-│   res.render('product', { products });       │          │ Hiển thị dữ liệu từ getAll()                 │
-│ }                                            │          └──────────────────────────────────────────────┘
+│                                              │          ┌────────────────────────────────────────┐
+│ const getAll = (req, res)  => {              │          │              views/product.ejs         │
+│   const products = Product.getAll();  ───────────────►  │----------------------------------------│
+│   res.render('product', { products });       │          │ Hiển thị dữ liệu từ getAll()           │
+│ }                                            │          └────────────────────────────────────────┘
 |                                              |
 │ const add = (req, res) => {                  │
 │   Product.add(req.body);                     │
